@@ -9,6 +9,7 @@ const oAuth2Client = new OAuth2Client(
     process.env.GOOGLE_REDIRECT_URI
 );
 
+// Get label ID by name (only for custom labels, not system labels)
 const getLabelIdByName = async (labelName) => {
     try {
         const response = await gmail.users.labels.list({
@@ -29,6 +30,7 @@ const getLabelIdByName = async (labelName) => {
     return null;
 };
 
+// Check if the email thread has been replied to previously
 const checkIfReplied = async (threadId, yourEmailAddress) => {
     try {
         const response = await gmail.users.threads.get({
@@ -59,6 +61,7 @@ const checkIfReplied = async (threadId, yourEmailAddress) => {
     return false;
 };
 
+// Send a reply to the email
 const sendReply = async (threadId, recipientEmail, emailSubject) => {
     const replyMessage = `I'm on vacation, don't disturb!`;
     await gmail.users.messages.send({
@@ -89,6 +92,7 @@ const sendReply = async (threadId, recipientEmail, emailSubject) => {
     });
 };
 
+// Function to get the auth URL
 exports.getAuthURL = (req, res) => {
     const authUrl = oAuth2Client.generateAuthUrl({
         access_type: "offline",
@@ -97,6 +101,7 @@ exports.getAuthURL = (req, res) => {
     res.redirect(authUrl);
 };
 
+// Function to handle the auth callback
 exports.handleAuthCallback = async (req, res) => {
     const code = req.query.code;
     const { tokens } = await oAuth2Client.getToken(code);
@@ -105,6 +110,7 @@ exports.handleAuthCallback = async (req, res) => {
     res.redirect("/email/unread");
 };
 
+// Function to set up the Gmail API
 const gmail = google.gmail({ version: "v1", auth: oAuth2Client });
 
 // Function to check for new emails
