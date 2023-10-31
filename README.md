@@ -6,6 +6,16 @@ A Node.js based Gmail Vacation Responder App
 
 Navigate to [http://localhost:3000/email](http://localhost:3000/email) to use the app.
 
+## Libraries & Technologies used
+
+-   Node.js
+-   Express
+-   Axios
+-   google-auth-library
+-   googleapis
+-   nodemon (for dev environment)
+-   dotenv (for storing environment variables)
+
 ## Installation
 
 ```bash

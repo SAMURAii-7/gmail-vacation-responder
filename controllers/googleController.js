@@ -116,7 +116,6 @@ exports.getAuthURL = (req, res) => {
 exports.handleAuthCallback = async (req, res) => {
     const code = req.query.code;
     const { tokens } = await oAuth2Client.getToken(code);
-    console.log(tokens);
     oAuth2Client.setCredentials(tokens);
     saveTokens(tokens);
     res.redirect("/email/unread");
@@ -170,17 +169,14 @@ exports.checkForNewEmails = async (req, res) => {
 
                     // Send a reply to the email
                     await sendReply(threadId, recipientEmail, emailSubject);
-                    console.log(`Replied to email thread: ${threadId}`);
                     res.json({
                         message: `Replied to email thread: ${threadId}`,
                     });
                 } else {
-                    console.log("No new emails to reply to.");
                     res.json({ message: "No new emails to reply to." });
                 }
             }
         } else {
-            console.log("No new emails to reply to.");
             res.json({ message: "No new emails to reply to." });
         }
     } catch (error) {
