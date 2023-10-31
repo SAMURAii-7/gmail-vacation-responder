@@ -1,4 +1,5 @@
 // authController.js
+const fs = require("fs");
 const { OAuth2Client } = require("google-auth-library");
 const { google } = require("googleapis");
 require("dotenv").config();
@@ -92,6 +93,16 @@ const sendReply = async (threadId, recipientEmail, emailSubject) => {
     });
 };
 
+// Store tokens in file
+const saveTokens = (tokens) => {
+    fs.writeFile("../tokens.json", JSON.stringify(tokens), (err) => {
+        if (err) {
+            return console.error("Error saving tokens:", err);
+        }
+        console.log("Tokens stored in file tokens.json");
+    });
+};
+
 // Function to get the auth URL
 exports.getAuthURL = (req, res) => {
     const authUrl = oAuth2Client.generateAuthUrl({
@@ -105,8 +116,9 @@ exports.getAuthURL = (req, res) => {
 exports.handleAuthCallback = async (req, res) => {
     const code = req.query.code;
     const { tokens } = await oAuth2Client.getToken(code);
+    console.log(tokens);
     oAuth2Client.setCredentials(tokens);
-
+    saveTokens(tokens);
     res.redirect("/email/unread");
 };
 
@@ -115,6 +127,14 @@ const gmail = google.gmail({ version: "v1", auth: oAuth2Client });
 
 // Function to check for new emails
 exports.checkForNewEmails = async (req, res) => {
+    // if tokens exist in file, set credentials and check for new emails otherwise redirect to auth url
+    if (fs.existsSync("../tokens.json")) {
+        const tokens = JSON.parse(fs.readFileSync("../tokens.json"));
+        oAuth2Client.setCredentials(tokens);
+    } else {
+        res.redirect("/auth/url");
+    }
+
     try {
         // Using the Gmail API to fetch new emails
         const response = await gmail.users.messages.list({
