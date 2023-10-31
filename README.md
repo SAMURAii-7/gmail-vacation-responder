@@ -16,6 +16,12 @@ Navigate to [http://localhost:3000/email](http://localhost:3000/email) to use th
 -   nodemon (for dev environment)
 -   dotenv (for storing environment variables)
 
+## Future Improvements
+
+-   Integrate with a front-end framework like React.js
+-   Connect a database to store tokens securely
+-   Customized replies based on labels on the email received, sender, etc.
+
 ## Installation
 
 ```bash
