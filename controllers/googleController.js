@@ -34,25 +34,21 @@ const getLabelIdByName = async (labelName) => {
 // Check if the email thread has been replied to previously
 const checkIfReplied = async (threadId, yourEmailAddress) => {
     try {
-        const response = await gmail.users.threads.get({
+        const response = await gmail.users.messages.list({
             userId: "me",
-            id: threadId,
+            q: `from:${yourEmailAddress}`,
         });
 
-        const thread = response.data;
+        const messages = response.data.messages;
 
-        if (thread.messages && thread.messages.length > 0) {
-            for (const message of thread.messages) {
-                const headers = message.payload.headers;
+        for (const message of messages) {
+            const messageData = await gmail.users.messages.get({
+                userId: "me",
+                id: message.id,
+            });
 
-                for (const header of headers) {
-                    if (
-                        header.name === "From" &&
-                        header.value === yourEmailAddress
-                    ) {
-                        return true;
-                    }
-                }
+            if (messageData.data.threadId === threadId) {
+                return true;
             }
         }
     } catch (error) {
@@ -63,7 +59,7 @@ const checkIfReplied = async (threadId, yourEmailAddress) => {
 };
 
 // Send a reply to the email
-const sendReply = async (threadId, recipientEmail, emailSubject) => {
+const sendReply = async (messageId, threadId, recipientEmail, emailSubject) => {
     const replyMessage = `I'm on vacation, don't disturb!`;
     await gmail.users.messages.send({
         userId: "me",
@@ -73,10 +69,13 @@ const sendReply = async (threadId, recipientEmail, emailSubject) => {
                     "Subject: Re: " +
                     `${emailSubject}` +
                     "\r\n" +
+                    `References: ${messageId}\r\n` +
+                    `In-Reply-To: ${messageId}\r\n` +
                     "Content-Type: text/plain; charset=UTF-8\r\n" +
                     "\r\n" +
                     replyMessage
             ).toString("base64"),
+            threadId: threadId,
         },
     });
 
@@ -88,7 +87,7 @@ const sendReply = async (threadId, recipientEmail, emailSubject) => {
         id: threadId,
         requestBody: {
             addLabelIds: [vacationLabelId],
-            removeLabelIds: ["UNREAD"], // Remove the UNREAD label to mark the email as read
+            // removeLabelIds: ["UNREAD"], // Remove the UNREAD label to mark the email as read
         },
     });
 };
@@ -151,6 +150,9 @@ exports.checkForNewEmails = async (req, res) => {
                 });
 
                 const threadId = messageData.data.threadId;
+                const messageId = messageData.data.payload.headers.find(
+                    (payload) => payload.name === "Message-ID"
+                ).value;
                 const userEmail = messageData.data.payload.headers.find(
                     (header) => header.name === "Delivered-To"
                 ).value;
@@ -168,7 +170,12 @@ exports.checkForNewEmails = async (req, res) => {
                     ).value;
 
                     // Send a reply to the email
-                    await sendReply(threadId, recipientEmail, emailSubject);
+                    await sendReply(
+                        messageId,
+                        threadId,
+                        recipientEmail,
+                        emailSubject
+                    );
                     res.json({
                         message: `Replied to email thread: ${threadId}`,
                     });
