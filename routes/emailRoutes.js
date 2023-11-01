@@ -6,6 +6,7 @@ const googleController = require("../controllers/googleController");
 const getRandomInterval = () => {
     // Generate a random interval between 45 and 120 seconds
     return Math.floor(Math.random() * (120000 - 45000 + 1) + 45000);
+    // return 30000;
 };
 
 let intervalId = null;

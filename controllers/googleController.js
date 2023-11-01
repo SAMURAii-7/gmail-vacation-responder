@@ -130,7 +130,7 @@ exports.checkForNewEmails = async (req, res) => {
         const tokens = JSON.parse(fs.readFileSync("../tokens.json"));
         oAuth2Client.setCredentials(tokens);
     } else {
-        res.redirect("/auth/url");
+        res.redirect("/auth/google");
     }
 
     try {
