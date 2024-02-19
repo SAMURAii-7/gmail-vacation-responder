@@ -1,4 +1,4 @@
-# OpenInApp Challenge
+# Gmail Vacation Responder
 
 A Node.js based Gmail Vacation Responder App
 
